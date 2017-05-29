@@ -9,14 +9,18 @@ Pickup::~Pickup()
 {
 }
 
-bool Pickup::CheckCollision(GameStatus status) {
-	if (status.lane != lane) return lane;
+GameStatus Pickup::CheckCollision(GameStatus status) {
+	if (!isActive || status.lane != lane) return status;
 
-	if (glm::distance(status.cameraPosition, position) < collisionDistance) return true;
+	if (glm::distance(status.cameraPosition, position) < collisionDistance) {
+		isActive = false;
+		status.score += score;
+	}
 
-	return false;
+	return status;
 }
 
 void Pickup::Render(glm::mat4 viewMatrix) {
-	model.Render(GL_TRIANGLES, viewMatrix);
+	if (isActive)
+		model.Render(GL_TRIANGLES, viewMatrix);
 }

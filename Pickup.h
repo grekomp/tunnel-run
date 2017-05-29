@@ -16,7 +16,7 @@ public:
 	Pickup();
 	~Pickup();
 
-	bool CheckCollision(GameStatus status);
+	GameStatus CheckCollision(GameStatus status);
 	void Render(glm::mat4 viewMatrix);
 };
 
