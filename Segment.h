@@ -13,7 +13,7 @@ public:
 	glm::vec4 position;
 
 	GameStatus CheckCollisions(GameStatus status);
-
+	void Dispose();
 	Segment();
 	~Segment();
 };

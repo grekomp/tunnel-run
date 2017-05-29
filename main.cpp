@@ -28,21 +28,26 @@ void specialKeys(int key, int x, int y);
 void setupShaders();
 void setupLocations(GLuint shaderProgram);
 void setupBuffers();
-void setupTexture();
+void setupTextures();
+void setupTexture(GLenum target, GLuint texture, const wchar_t *fileName);
 void loadTexture(GLuint texture, const wchar_t *fileName);
 
 //******************************************************************************************
 GLuint shaderPrograms[2];
-
-// Uniform locations
-GLuint parallaxStrengthLoc;
 
 // Matrices
 glm::mat4 projMatrix;
 glm::mat4 viewMatrix;
 
 // Textures
-GLuint textures[4];
+std::vector<const wchar_t *> textureFiles = {
+	L"bricks2.jpg",
+	L"bricks2_spec.jpg",
+	L"bricks2_norm.jpg",
+	L"bricks2_disp.jpg"
+};
+const int nTextures = 4;
+GLuint textures[nTextures];
 
 // Light parameters
 glm::vec4 lightPosition = glm::vec4(20.0f, 20.0f, 15.0f, 1.0f);
@@ -55,9 +60,6 @@ glm::vec3 materialAmbient = glm::vec3(0.2f, 0.2f, 0.2f);
 glm::vec3 materialDiffuse = glm::vec3(0.5f, 0.5f, 0.5f);
 glm::vec3 materialSpecular = glm::vec3(0.8f, 0.8f, 0.8f);
 float shininess = 10.2f;
-
-// Parallax strength modifier
-float parallaxStrength = 0.2f;
 
 // Options
 float fovy = 45.0f;
@@ -74,7 +76,7 @@ int main(int argc, char *argv[])
     glutInit( &argc, argv );
     glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH );
 
-	glutInitContextVersion( 3, 1 );
+	glutInitContextVersion( 3, 3 );
 	glutInitContextFlags( GLUT_DEBUG );
 	glutInitContextProfile( GLUT_CORE_PROFILE );
 
@@ -92,9 +94,9 @@ int main(int argc, char *argv[])
 		exit( 1 );
 	}
 
-	if( !GLEW_VERSION_3_1 )
+	if( !GLEW_VERSION_3_3 )
 	{
-		std::cerr << "Brak obslugi OpenGL 3.1\n";
+		std::cerr << "Brak obslugi OpenGL 3.3\n";
 		exit( 2 );
 	}
     
@@ -141,7 +143,7 @@ void initGL()
 
 	setupBuffers();
 
-	setupTexture();
+	setupTextures();
 
 	printStatus();
 }
@@ -177,9 +179,6 @@ void renderScene()
 		glm::vec3( 0, 1, 0 ) 
 	);
 
-	// Setting parallax strength
-	glUniform1f(parallaxStrengthLoc, parallaxStrength);
-
 	// Sending the projection matrix
 	glUniformMatrix4fv( PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr( projMatrix ) );
 
@@ -187,21 +186,11 @@ void renderScene()
 	glm::vec4 lightPos = viewMatrix * lightPosition;
 	glUniform4fv(LIGHT_POSITION_LOCATION, 1, glm::value_ptr(lightPos));
 
-	// Sending light and material options
+	// Sending light options
 	glUniform3fv(LIGHT_AMBIENT_LOCATION, 1, glm::value_ptr(lightAmbient));
-	glUniform3fv(MATERIAL_AMBIENT_LOCATION, 1, glm::value_ptr(materialAmbient));
-
 	glUniform3fv(LIGHT_DIFFUSE_LOCATION, 1, glm::value_ptr(lightDiffuse));
-	glUniform3fv(MATERIAL_DIFFUSE_LOCATION, 1, glm::value_ptr(materialDiffuse));
-
 	glUniform3fv(LIGHT_SPECULAR_LOCATION, 1, glm::value_ptr(lightSpecular));
-	glUniform3fv(MATERIAL_SPECULAR_LOCATION, 1, glm::value_ptr(materialSpecular));
-	glUniform1f(MATERIAL_SHININESS_LOCATION, shininess);
-
-	// Normal transform matrix
-	glm::mat3 normalMat = glm::inverseTranspose(glm::mat3(viewMatrix));
-	glUniformMatrix3fv(NORMAL_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr(normalMat));
-
+	
     glutSwapBuffers();
 }
 
@@ -248,82 +237,40 @@ void setupShaders()
 	// Setting up shaders with textures
 	if (!setupShaders("shaders/vertex-texture.vert", "shaders/fragment-texture.frag", shaderPrograms[0])) {
 		std::cout << "Failed to setup shaders - texture" << std::endl;
-		//exit(3);
 	}
-
-	// Setting up uniform locations
-	setupLocations(shaderPrograms[0]);
-}
-
-void setupLocations(GLuint shaderProgram) {
-	// Parallax strength
-	parallaxStrengthLoc = glGetUniformLocation(shaderProgram, "parallaxStrength");
 }
 
 void setupBuffers()
 {
-	
+	// TODO: Add model loading, setupSegments
 }
 
 // ------------------------------------------------
-void setupTexture() {
+void setupTextures() {
 	// Generating and binding texture identifier
-	glGenTextures(4, textures);
+	glGenTextures(nTextures, textures);
 
-	// ----------------
-	// Diffuse texture
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
-
-	// Setting parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	// Loading texture from file
-	loadTexture(GL_TEXTURE_2D, L"bricks2.jpg");
-
-	// ----------------
-	// Specular texture
-	glBindTexture(GL_TEXTURE_2D, textures[1]);
-
-	// Setting parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	// Loading texture from file
-	loadTexture(GL_TEXTURE_2D, L"bricks2_spec.jpg");
-
-	// ----------------
-	// Normal texture
-	glBindTexture(GL_TEXTURE_2D, textures[2]);
-
-	// Setting parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	// Loading texture from file
-	loadTexture(GL_TEXTURE_2D, L"bricks2_norm.jpg");
-
-	// ----------------
-	// Displacemet texture
-	glBindTexture(GL_TEXTURE_2D, textures[3]);
-
-	// Setting parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	// Loading texture from file
-	loadTexture(GL_TEXTURE_2D, L"bricks2_disp.jpg");
+	// Setting up all 2d textures
+	for (int i = 0; i < nTextures; i++) {
+		setupTexture(GL_TEXTURE_2D, textures[i], textureFiles[i]);
+	}
 
 	// Unbinding texture
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void setupTexture(GLenum target, GLuint texture, const wchar_t *fileName) {
+	// Binding texture
+	glBindTexture(target, texture);
+
+	// Setting parameters
+	glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	// Loading texture from file
+	loadTexture(target, fileName);
 }
 
 // Loads a texture from file

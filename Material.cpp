@@ -7,7 +7,9 @@ Material::Material() {
 Material::~Material() {
 }
 
+// Sends textures and uniforms to shader
 void Material::Bind() {
+	// Textures
 	glUniform1i(DIFFUSE_SAMPLER_LOCATION, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture.diffuse);
@@ -24,5 +26,10 @@ void Material::Bind() {
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, texture.displacement);
 
-
+	// Material parameters
+	glUniform3fv(MATERIAL_AMBIENT_LOCATION, 1, glm::value_ptr(ambient));
+	glUniform3fv(MATERIAL_DIFFUSE_LOCATION, 1, glm::value_ptr(diffuse));
+	glUniform3fv(MATERIAL_SPECULAR_LOCATION, 1, glm::value_ptr(specular));
+	glUniform1f(MATERIAL_SHININESS_LOCATION, shininess);
+	glUniform1f(PARALLAX_STRENGTH_LOCATION, parallaxStrength);
 }

@@ -24,3 +24,13 @@ GameStatus Segment::CheckCollisions(GameStatus status) {
 
 	return status;
 }
+
+void Segment::Dispose() {
+	for (int i = 0; i < obstacles.size(); i++) {
+		obstacles[i].Dispose();
+	}
+
+	for (int i = 0; i < pickups.size(); i++) {
+		pickups[i].Dispose();
+	}
+}

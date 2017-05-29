@@ -2,6 +2,7 @@
 #include "glm/glm.hpp"
 #include "Model.h"
 #include "GameStatus.h"
+#include "Material.h"
 
 class Obstacle
 {
@@ -10,7 +11,8 @@ public:
 	Model model;
 	int lane;
 	float collisionDistance = 1.0f;
-	
+	Material material;
+
 	Obstacle();
 	~Obstacle();
 
