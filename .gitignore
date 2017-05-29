@@ -3,4 +3,6 @@ dlls
 include
 lib
 x64
-*.vcxproj*
+*.vcxproj
+*.filters
+*.user
