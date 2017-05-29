@@ -63,6 +63,9 @@ float parallaxStrength = 0.2f;
 float fovy = 45.0f;
 float aspectRatio = (float)WIDTH / HEIGHT;
 
+// ---------------
+Model models[5];
+
 //******************************************************************************************
 int main(int argc, char *argv[])
 {
@@ -164,15 +167,15 @@ void renderScene()
 	// Clearing the screen
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+	// Picking and using a shader program
+	glUseProgram( shaderPrograms[0] );
+
 	// Creating the view matrix
 	viewMatrix = glm::lookAt(
 		glm::vec3( 0, 0, 8 ), 
 		glm::vec3( 0, 0, -1 ), 
 		glm::vec3( 0, 1, 0 ) 
 	);
-
-	// Picking and using a shader program
-	glUseProgram( shaderPrograms[0] );
 
 	// Setting parallax strength
 	glUniform1f(parallaxStrengthLoc, parallaxStrength);
