@@ -20,3 +20,7 @@ bool Obstacle::CheckCollision(GameStatus status) {
 void Obstacle::Render(glm::mat4 viewMatrix) {
 	model.Render(GL_TRIANGLES, viewMatrix);
 }
+
+void Obstacle::Dispose() {
+	model.Dispose();
+}

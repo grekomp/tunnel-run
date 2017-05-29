@@ -24,3 +24,7 @@ void Pickup::Render(glm::mat4 viewMatrix) {
 	if (isActive)
 		model.Render(GL_TRIANGLES, viewMatrix);
 }
+
+void Pickup::Dispose() {
+	model.Dispose();
+}

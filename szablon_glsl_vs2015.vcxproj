@@ -154,6 +154,8 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Obstacle.cpp" />
+    <ClCompile Include="Pickup.cpp" />
+    <ClCompile Include="Segment.cpp" />
     <ClCompile Include="shaders.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
@@ -163,6 +165,8 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Obstacle.h" />
+    <ClInclude Include="Pickup.h" />
+    <ClInclude Include="Segment.h" />
     <ClInclude Include="shaders.h" />
     <ClInclude Include="Texture.h" />
   </ItemGroup>

@@ -18,5 +18,6 @@ public:
 
 	GameStatus CheckCollision(GameStatus status);
 	void Render(glm::mat4 viewMatrix);
+	void Dispose();
 };
 
