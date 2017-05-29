@@ -3,3 +3,4 @@ dlls
 include
 lib
 x64
+*.vcxproj*
