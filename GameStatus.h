@@ -11,5 +11,6 @@ public:
 	float score;
 	float time;
 	int lane;
+	bool gameOver;
 };
 
