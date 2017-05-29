@@ -149,14 +149,22 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameStatus.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="shaders.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
+    <ClInclude Include="GameStatus.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Obstacle.h" />
     <ClInclude Include="shaders.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="run_files\shaders\fragment-texture.frag" />
