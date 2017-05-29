@@ -10,7 +10,7 @@ public:
 	float score;
 	Model model;
 	int lane;
-	bool isActive;
+	bool isActive = true;
 	float collisionDistance = 1.0f;
 
 	Pickup();
