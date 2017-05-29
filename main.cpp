@@ -41,6 +41,9 @@ GLuint parallaxStrengthLoc;
 glm::mat4 projMatrix;
 glm::mat4 viewMatrix;
 
+// Textures
+GLuint textures[4];
+
 // Light parameters
 glm::vec4 lightPosition = glm::vec4(20.0f, 20.0f, 15.0f, 1.0f);
 glm::vec3 lightAmbient = glm::vec3(0.2f, 0.2f, 0.2f);
@@ -173,23 +176,6 @@ void renderScene()
 
 	// Setting parallax strength
 	glUniform1f(parallaxStrengthLoc, parallaxStrength);
-	
-	// Binding texture
-	glUniform1i(DIFFUSE_SAMPLER_LOCATION, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
-
-	glUniform1i(SPECULAR_SAMPLER_LOCATION, 1);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, textures[1]);
-
-	glUniform1i(NORMAL_SAMPLER_LOCATION, 2);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, textures[2]);
-
-	glUniform1i(DISPLACEMENT_SAMPLER_LOCATION, 3);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, textures[3]);
 
 	// Sending the projection matrix
 	glUniformMatrix4fv( PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr( projMatrix ) );
