@@ -18,8 +18,6 @@ bool Obstacle::CheckCollision(GameStatus status) {
 }
 
 void Obstacle::Render(glm::mat4 viewMatrix) {
-	material.Bind();
-
 	model.Render(GL_TRIANGLES, viewMatrix);
 }
 

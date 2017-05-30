@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common.h"
+#include "Material.h"
 
 #pragma once
 class Model
@@ -34,6 +35,8 @@ public:
 	glm::vec3 localScale;
 	glm::vec3 centerMass;
 	int restartIndex;
+
+	Material material;
 
 	bool LoadModelFromFile(std::string fileName);
 	void Buffer();

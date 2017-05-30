@@ -34,3 +34,13 @@ void Segment::Dispose() {
 		pickups[i].Dispose();
 	}
 }
+
+void Segment::Render(glm::mat4 viewMatrix) {
+	for (int i = 0; i < obstacles.size(); i++) {
+		obstacles[i].Render(viewMatrix);
+	}
+
+	for (int i = 0; i < pickups.size(); i++) {
+		pickups[i].Render(viewMatrix);
+	}
+}

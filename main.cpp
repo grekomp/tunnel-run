@@ -7,9 +7,11 @@
 #include <vector>
 #include <iostream>
 
+#include "CorridorSegment.h"
 #include "Common.h"
 #include "shaders.h"
 #include "Model.h"
+#include "Game.h"
 
 // Config
 const int WIDTH = 768;
@@ -26,7 +28,6 @@ void renderScene();
 void keyboard(unsigned char key, int x, int y);
 void specialKeys(int key, int x, int y);
 void setupShaders();
-void setupLocations(GLuint shaderProgram);
 void setupBuffers();
 void setupTextures();
 void setupTexture(GLenum target, GLuint texture, const wchar_t *fileName);
@@ -37,7 +38,6 @@ GLuint shaderPrograms[2];
 
 // Matrices
 glm::mat4 projMatrix;
-glm::mat4 viewMatrix;
 
 // Textures
 std::vector<const wchar_t *> textureFiles = {
@@ -48,6 +48,10 @@ std::vector<const wchar_t *> textureFiles = {
 };
 const int nTextures = 4;
 GLuint textures[nTextures];
+
+Texture wallTexture;
+Texture floorTexture;
+Texture ceilTexture;
 
 // Light parameters
 glm::vec4 lightPosition = glm::vec4(20.0f, 20.0f, 15.0f, 1.0f);
@@ -67,6 +71,12 @@ float aspectRatio = (float)WIDTH / HEIGHT;
 
 // ---------------
 Model models[5];
+
+// Game
+Game game;
+CorridorSegment baseCorridor;
+Obstacle baseObstacle;
+Pickup basePickup;
 
 //******************************************************************************************
 int main(int argc, char *argv[])
@@ -140,10 +150,8 @@ void initGL()
 	glEnable(GL_PRIMITIVE_RESTART);
 
 	setupShaders();
-
-	setupBuffers();
-
 	setupTextures();
+	setupBuffers();
 
 	printStatus();
 }
@@ -172,19 +180,11 @@ void renderScene()
 	// Picking and using a shader program
 	glUseProgram( shaderPrograms[0] );
 
-	// Creating the view matrix
-	viewMatrix = glm::lookAt(
-		glm::vec3( 0, 0, 8 ), 
-		glm::vec3( 0, 0, -1 ), 
-		glm::vec3( 0, 1, 0 ) 
-	);
+	// Rendering game objects
+	game.Render();
 
 	// Sending the projection matrix
-	glUniformMatrix4fv( PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr( projMatrix ) );
-
-	// Recalculating light position to eye coordinates
-	glm::vec4 lightPos = viewMatrix * lightPosition;
-	glUniform4fv(LIGHT_POSITION_LOCATION, 1, glm::value_ptr(lightPos));
+	glUniformMatrix4fv(PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr(projMatrix));
 
 	// Sending light options
 	glUniform3fv(LIGHT_AMBIENT_LOCATION, 1, glm::value_ptr(lightAmbient));
@@ -242,7 +242,25 @@ void setupShaders()
 
 void setupBuffers()
 {
-	// TODO: Add model loading, setupSegments
+	// Setup Corridor
+	Model wall;
+	wall.LoadModelFromFile("models/wall.obj");
+	wall.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+	// Wall material
+	wall.material.texture = wallTexture;
+	wall.material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	wall.material.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+	wall.material.specular = glm::vec3(0.8f, 0.8f, 0.8f);
+
+	// Buffering wall
+	wall.Buffer();
+
+	baseCorridor.models.push_back(wall);
+
+	game.corridorBase = baseCorridor;
+	game.corridorSegments.push_back(baseCorridor);
+
 }
 
 // ------------------------------------------------
@@ -254,6 +272,12 @@ void setupTextures() {
 	for (int i = 0; i < nTextures; i++) {
 		setupTexture(GL_TEXTURE_2D, textures[i], textureFiles[i]);
 	}
+
+	// Assigning textures
+	wallTexture.diffuse = textures[0];
+	wallTexture.specular = textures[1];
+	wallTexture.normal = textures[2];
+	wallTexture.displacement = textures[3];
 
 	// Unbinding texture
 	glBindTexture(GL_TEXTURE_2D, 0);

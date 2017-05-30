@@ -11,7 +11,6 @@ public:
 	Model model;
 	int lane;
 	float collisionDistance = 1.0f;
-	Material material;
 
 	Obstacle();
 	~Obstacle();

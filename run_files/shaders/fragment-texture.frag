@@ -52,6 +52,7 @@ void main()
 	vec4 colorL = ads(N, materialAmbient, vec3(texture(textureSamplerDiff, texCoords)), vec3(texture(textureSamplerSpec, texCoords)), shininess);
 	 
 	fColor = clamp(colorL, 0.0, 1.0 );
+	//fColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
 
 // funkcja obliczajaca oswietlenie

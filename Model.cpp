@@ -133,12 +133,14 @@ void Model::Buffer() {
 // Renders the model
 void Model::Render(GLenum drawMode, glm::mat4 viewMatrix) {
 
+	// Binding material
+	material.Bind();
+
 	// Binding vao
 	glBindVertexArray(vao);
 
 	// Applying transformations
 	glm::mat4 modelMatrix = GetTransform();
-	glUniformMatrix4fv(VIEW_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 	glUniformMatrix4fv(MODEL_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
 	// Normal transformation matrix
