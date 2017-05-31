@@ -1,5 +1,6 @@
 #version 330
 #extension GL_ARB_explicit_uniform_location : enable
+#extension GL_EXT_texture_filter_anisotropic : enable
 
 //-------------------------------------------------------------------
 layout (location = 9) uniform sampler2D textureSamplerDiff;
@@ -22,6 +23,7 @@ layout (location = 21) uniform float parallaxStrength;
 in vec2 texCoords;
 in vec3 lightDir;
 in vec3 viewDir;
+in vec3 position;
 
 out vec4 fColor;
 
@@ -30,42 +32,30 @@ vec3 viewD;
 
 //-------------------------------------------------------------------
 
-vec4 ads(
-	vec3 norm,
-	vec3 materialAmbient,
-	vec3 materialDiffuse,
-	vec3 materialSpecular,
-	float shininess
-);
-
-vec2 parallaxMapping(vec3 viewDir, vec2 texCoords);
-
-//-------------------------------------------------------------------
-
 void main()
 {
 	lightD = normalize(lightDir);
 	viewD = normalize(viewDir);
 
-	vec3 N = normalize(2.0 * texture(textureSamplerNorm, texCoords).rgb - 1.0);
+	vec2 p = (texture(textureSamplerDisp, texCoords).r * parallaxStrength) * viewDir.xy;
 
-	vec4 colorL = ads(N, materialAmbient, vec3(texture(textureSamplerDiff, texCoords)), vec3(texture(textureSamplerSpec, texCoords)), shininess);
-	 
-	fColor = clamp(colorL, 0.0, 1.0 );
-	//fColor = vec4(1.0, 1.0, 1.0, 1.0);
-}
+	vec2 parallaxTexCoord = texCoords + p;
 
-// funkcja obliczajaca oswietlenie
-vec4 ads(vec3 norm, vec3 materialAmbient, vec3 materialDiffuse, vec3 materialSpecular, float shininess )
-{
-	vec3 ambient = lightAmbient * materialAmbient;
+	vec3 N = normalize(2.0 * texture(textureSamplerNorm, parallaxTexCoord).rgb - 1.0);
 	
-	vec3 diffuse = lightDiffuse * materialDiffuse * max( dot( lightD, norm ), 0.0 );
+	// Lighting
+	vec3 ambient = lightAmbient * materialAmbient;
+	vec3 diffuse = lightDiffuse * vec3(texture(textureSamplerDiff, parallaxTexCoord)) * max( dot( lightD, N ), 0.0 );
 
 	vec3 specular = vec3( 0.0, 0.0, 0.0 );
-	vec3 refl = reflect( vec3( 0.0, 0.0, 0.0 ) - lightD, norm );
-	specular = pow( max( 0.0, dot( viewD, refl ) ), shininess ) * materialSpecular * lightSpecular;
+	vec3 refl = reflect( vec3( 0.0, 0.0, 0.0 ) - lightD, N );
+	specular = pow( max( 0.0, dot( viewD, refl ) ), shininess ) * vec3(texture(textureSamplerSpec, parallaxTexCoord)) * lightSpecular;
 
-    return vec4( clamp( ambient + diffuse + specular, 0.0, 1.0 ), 1.0 );
+	vec4 color = vec4( clamp( ambient + diffuse + specular, 0.0, 1.0 ), 1.0 );
+
+	color = mix(color, vec4(0, 0, 0, 0), length(position) / 50); 
+
+	fColor = color;
 }
+
 

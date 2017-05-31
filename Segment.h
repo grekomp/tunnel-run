@@ -15,6 +15,8 @@ public:
 	GameStatus CheckCollisions(GameStatus status);
 	void Dispose();
 	void Render(glm::mat4 viewMatrix);
+	void RenderPickups(glm::mat4 viewMatrix, GameStatus status);
+
 	Segment();
 	~Segment();
 };

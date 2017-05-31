@@ -6,6 +6,8 @@
 #include <IL\il.h>
 #include <vector>
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 
 #include "CorridorSegment.h"
 #include "Common.h"
@@ -41,29 +43,38 @@ glm::mat4 projMatrix;
 
 // Textures
 std::vector<const wchar_t *> textureFiles = {
-	L"bricks2.jpg",
-	L"bricks2_spec.jpg",
-	L"bricks2_norm.jpg",
-	L"bricks2_disp.jpg"
+	L"wall-diff.tif",
+	L"wall-disp2.tif",
+	L"wall-norm.tif",
+	L"wall-disp2.tif",
+	L"floor-diff.tif",
+	L"floor-disp.tif",
+	L"floor-norm.tif",
+	L"floor-disp.tif",
+	L"obstacle-diff.tif",
+	L"obstacle-spec.tif",
+	L"obstacle-norm.tif",
+	L"obstacle-disp.tif",
+	L"marble-diff.jpg",
+	L"marble-spec.jpg",
+	L"marble-norm.jpg",
+	L"marble-spec.jpg"
 };
-const int nTextures = 4;
+const int nTextures = 16;
 GLuint textures[nTextures];
+GLuint tex_cube;
 
 Texture wallTexture;
 Texture floorTexture;
 Texture ceilTexture;
+Texture obstacleTexture;
+Texture ballTexture;
 
 // Light parameters
 glm::vec4 lightPosition = glm::vec4(20.0f, 20.0f, 15.0f, 1.0f);
 glm::vec3 lightAmbient = glm::vec3(0.2f, 0.2f, 0.2f);
 glm::vec3 lightDiffuse = glm::vec3(1.0f, 1.0f, 1.0f);
 glm::vec3 lightSpecular = glm::vec3(1.0, 1.0, 1.0);
-
-// Material parameters
-glm::vec3 materialAmbient = glm::vec3(0.2f, 0.2f, 0.2f);
-glm::vec3 materialDiffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-glm::vec3 materialSpecular = glm::vec3(0.8f, 0.8f, 0.8f);
-float shininess = 10.2f;
 
 // Options
 float fovy = 45.0f;
@@ -77,10 +88,13 @@ Game game;
 CorridorSegment baseCorridor;
 Obstacle baseObstacle;
 Pickup basePickup;
+std::vector<Segment> baseSegments;
 
 //******************************************************************************************
 int main(int argc, char *argv[])
 {
+	srand((int)time(NULL));
+
 	atexit( onShutdown );
 
     glutInit( &argc, argv );
@@ -110,8 +124,9 @@ int main(int argc, char *argv[])
 		exit( 2 );
 	}
     
-    glutReshapeFunc( changeSize );
-    glutDisplayFunc( renderScene );
+    glutReshapeFunc(changeSize);
+    glutDisplayFunc(renderScene);
+	glutIdleFunc(renderScene);
 
 	glutKeyboardFunc( keyboard );
 	glutSpecialFunc( specialKeys );
@@ -180,9 +195,6 @@ void renderScene()
 	// Picking and using a shader program
 	glUseProgram( shaderPrograms[0] );
 
-	// Rendering game objects
-	game.Render();
-
 	// Sending the projection matrix
 	glUniformMatrix4fv(PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr(projMatrix));
 
@@ -191,6 +203,24 @@ void renderScene()
 	glUniform3fv(LIGHT_DIFFUSE_LOCATION, 1, glm::value_ptr(lightDiffuse));
 	glUniform3fv(LIGHT_SPECULAR_LOCATION, 1, glm::value_ptr(lightSpecular));
 	
+	// Rendering game objects
+	game.NextFrame();
+	game.Render();
+
+	// Pickups shader program
+	glUseProgram(shaderPrograms[1]);
+
+	// Sending the projection matrix
+	glUniformMatrix4fv(PROJECTION_MATRIX_LOCATION, 1, GL_FALSE, glm::value_ptr(projMatrix));
+
+	// Sending light options
+	glUniform3fv(LIGHT_AMBIENT_LOCATION, 1, glm::value_ptr(lightAmbient));
+	glUniform3fv(LIGHT_DIFFUSE_LOCATION, 1, glm::value_ptr(lightDiffuse));
+	glUniform3fv(LIGHT_SPECULAR_LOCATION, 1, glm::value_ptr(lightSpecular));
+
+	// Rendering pickups
+	game.RenderPickups();
+
     glutSwapBuffers();
 }
 
@@ -201,6 +231,22 @@ void keyboard(unsigned char key, int x, int y)
 		case 27: // ESC
 			exit( 0 );
 			break;
+		case 'a':
+			game.status.lane--;
+			if (game.status.lane < 1) game.status.lane = 1;
+			break;
+		case 'd':
+			game.status.lane++;
+			if (game.status.lane > 3) game.status.lane = 3;
+			break;
+		/*
+		case 'w':
+			game.cameraSpeedZ *= game.cameraSpeedModifier;
+			break;
+		case 's':
+			game.cameraSpeedZ /= game.cameraSpeedModifier;
+			break;
+			*/
 		case '+':
 		case '=':
 			fovy /= 1.1f;
@@ -227,6 +273,14 @@ void specialKeys(int key, int x, int y)
 			if( glutGetModifiers() == GLUT_ACTIVE_ALT )
 				exit( 0 );
 			break;
+		case GLUT_KEY_LEFT:
+			game.status.lane--;
+			if (game.status.lane < 1) game.status.lane = 1;
+			break;
+		case GLUT_KEY_RIGHT:
+			game.status.lane++;
+			if (game.status.lane > 3) game.status.lane = 3;
+			break;
 	}
 
 	glutPostRedisplay();
@@ -238,11 +292,14 @@ void setupShaders()
 	if (!setupShaders("shaders/vertex-texture.vert", "shaders/fragment-texture.frag", shaderPrograms[0])) {
 		std::cout << "Failed to setup shaders - texture" << std::endl;
 	}
+	if (!setupShaders("shaders/pickup.vert", "shaders/pickup.frag", shaderPrograms[1])) {
+		std::cout << "Failed to setup shaders - pickup" << std::endl;
+	}
 }
 
 void setupBuffers()
 {
-	// Setup Corridor
+	// Setup Wall
 	Model wall;
 	wall.LoadModelFromFile("models/wall.obj");
 	wall.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
@@ -252,15 +309,156 @@ void setupBuffers()
 	wall.material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
 	wall.material.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
 	wall.material.specular = glm::vec3(0.8f, 0.8f, 0.8f);
+	wall.material.shininess = 80.0f;
+	wall.material.parallaxStrength = 0.2f;
 
 	// Buffering wall
 	wall.Buffer();
 
+	// Adding wall to corridor
 	baseCorridor.models.push_back(wall);
 
+	// Setup Floor
+	Model floor;
+	floor.LoadModelFromFile("models/floor.obj");
+	floor.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
+	
+	// Floor Material
+	floor.material.texture = floorTexture;
+	floor.material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	floor.material.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+	floor.material.specular = glm::vec3(0.8f, 0.8f, 0.8f);
+	floor.material.shininess = 80.0f;
+
+	// Buffering floor
+	floor.Buffer();
+
+	// Adding floor to corridor
+	baseCorridor.models.push_back(floor);
+	
+	// Setup columns
+	Model columns;
+	columns.LoadModelFromFile("models/wallColumn.obj");
+	columns.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+	// Column Material
+	columns.material.texture = wallTexture;
+	columns.material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	columns.material.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+	columns.material.specular = glm::vec3(0.8f, 0.8f, 0.8f);
+	columns.material.parallaxStrength = 0.05f;
+	columns.material.shininess = 80.0f;
+
+	// Buffering floor
+	columns.Buffer();
+
+	// Adding floor to corridor
+	baseCorridor.models.push_back(columns);
+
+	// Setting corridor length
+	baseCorridor.length = 4.0f;
+
+	// Assigning corridor
 	game.corridorBase = baseCorridor;
 	game.corridorSegments.push_back(baseCorridor);
 
+	// ----------------
+	// Setup obstacle
+	Model obstacle;
+	obstacle.LoadModelFromFile("models/obstacle.obj");
+	obstacle.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+	//Obstacle Material
+	obstacle.material.texture = obstacleTexture;
+	obstacle.material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	obstacle.material.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+	obstacle.material.specular = glm::vec3(0.8f, 0.8f, 0.8f);
+	obstacle.material.parallaxStrength = 0.1f;
+	obstacle.material.shininess = 200.0f;
+
+	// Buffering obstacle
+	obstacle.Buffer();
+
+	// Adding obstacle 
+	baseObstacle.model = obstacle;
+	baseObstacle.lane = 1;
+
+	game.obstacleBase = baseObstacle;
+
+	Obstacle baseObstacle2 = baseObstacle;
+	baseObstacle2.lane = 2;
+
+	Obstacle baseObstacle3 = baseObstacle;
+	baseObstacle3.lane = 3;
+
+	//Setup pickup
+	Model pickup;
+	pickup.LoadModelFromFile("models/diamond.obj");
+	pickup.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+	//Pickup Material
+	pickup.material.ambient = glm::vec3(0.3f, 0.3f, 1.0f);
+	pickup.material.diffuse = glm::vec3(1.0f, 0.829f, 0.829f);
+	pickup.material.specular = glm::vec3(0.992157f, 0.941176f, 0.807843f);
+	pickup.material.parallaxStrength = 0.05f;
+	pickup.material.shininess = 20.0f;
+
+	// Buffering pickup
+	pickup.Buffer();
+
+	// Adding pickup
+	basePickup.model = pickup;
+	basePickup.cubemapTexture = tex_cube;
+	basePickup.lane = 3;
+	basePickup.score = 100;
+	basePickup.isActive = true;
+	
+	game.pickupBase = basePickup;
+
+	// Segment
+	Segment baseSegment;
+	baseSegment.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
+	baseSegment.length = 8.0f;
+	baseSegment.obstacles.push_back(baseObstacle);
+	//baseSegment.obstacles.push_back(baseObstacle2);
+	baseSegment.pickups.push_back(basePickup);
+
+	baseSegments.push_back(baseSegment);
+
+	baseSegment.obstacles.clear();
+	baseSegment.pickups.clear();
+	baseSegment.obstacles.push_back(baseObstacle);
+	baseSegment.obstacles.push_back(baseObstacle3);
+	basePickup.lane = 2;
+	baseSegment.pickups.push_back(basePickup);
+
+	//baseSegments.push_back(baseSegment);
+
+	baseSegment.obstacles.clear();
+	baseSegment.pickups.clear();
+	baseSegment.obstacles.push_back(baseObstacle2);
+	baseSegment.obstacles.push_back(baseObstacle3);
+	basePickup.lane = 1;
+	baseSegment.pickups.push_back(basePickup);
+
+	//baseSegments.push_back(baseSegment);
+
+	game.baseSegments = baseSegments;
+	game.segments.push_back(baseSegments[0]);
+
+	// ----------------
+	// Ball
+	Model ball;
+	ball.LoadModelFromFile("models/ball.obj");
+	ball.material.texture = ballTexture;
+	ball.material.ambient = glm::vec3(0.2, 0.2, 0.2);
+	ball.material.shininess = 40.0f;
+	ball.Buffer();
+
+	game.ball = ball;
+
+	// Setting up first frame
+	game.FirstFrame();
 }
 
 // ------------------------------------------------
@@ -278,9 +476,43 @@ void setupTextures() {
 	wallTexture.specular = textures[1];
 	wallTexture.normal = textures[2];
 	wallTexture.displacement = textures[3];
+	
+	floorTexture.diffuse = textures[4];
+	floorTexture.specular = textures[5];
+	floorTexture.normal = textures[6];
+	floorTexture.displacement = textures[7];
+
+	obstacleTexture.diffuse = textures[8];
+	obstacleTexture.specular = textures[9];
+	obstacleTexture.normal = textures[10];
+	obstacleTexture.displacement = textures[11];
+
+	ballTexture.diffuse = textures[12];
+	ballTexture.specular = textures[13];
+	ballTexture.normal = textures[14];
+	ballTexture.displacement = textures[15];
 
 	// Unbinding texture
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// Cubemap
+	glGenTextures(1, &tex_cube);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, tex_cube);
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	loadTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_X, L"pos_x.png");
+	loadTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, L"neg_x.png");
+	loadTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, L"pos_y.png");
+	loadTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, L"neg_y.png");
+	loadTexture(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, L"pos_z.png");
+	loadTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, L"neg_z.png");
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 void setupTexture(GLenum target, GLuint texture, const wchar_t *fileName) {
@@ -291,10 +523,13 @@ void setupTexture(GLenum target, GLuint texture, const wchar_t *fileName) {
 	glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
 
 	// Loading texture from file
 	loadTexture(target, fileName);
+
+	glGenerateTextureMipmap(texture);
 }
 
 // Loads a texture from file

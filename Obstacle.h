@@ -10,13 +10,13 @@ public:
 	glm::vec4 position;
 	Model model;
 	int lane;
-	float collisionDistance = 1.0f;
+	float collisionDistance = 0.1f;
 
 	Obstacle();
 	~Obstacle();
 
-	void Render(glm::mat4 viewMatrix);
-	bool CheckCollision(GameStatus status);
+	void Render(glm::mat4 viewMatrix, glm::vec4 segmentPosition);
+	bool CheckCollision(GameStatus status, glm::vec4 segmentPosition);
 	void Dispose();
 };
 

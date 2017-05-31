@@ -44,11 +44,12 @@ bool Model::LoadModelFromFile(std::string fileName) {
 			tangents.push_back(scene->mMeshes[0]->mTangents[i].x);
 			tangents.push_back(scene->mMeshes[0]->mTangents[i].y);
 			tangents.push_back(scene->mMeshes[0]->mTangents[i].z);
-
+			
 			// Add all binormals (bitangents)
 			binormals.push_back(scene->mMeshes[0]->mBitangents[i].x);
 			binormals.push_back(scene->mMeshes[0]->mBitangents[i].y);
 			binormals.push_back(scene->mMeshes[0]->mBitangents[i].z);
+
 		}
 
 		// Add texture coordinates if existing
@@ -66,8 +67,9 @@ bool Model::LoadModelFromFile(std::string fileName) {
 			}
 			indices.push_back(restartIndex);
 		}
-
+		
 	}
+
 
 	return true;
 }
@@ -138,6 +140,9 @@ void Model::Render(GLenum drawMode, glm::mat4 viewMatrix) {
 
 	// Binding vao
 	glBindVertexArray(vao);
+
+	// Setting primitive restart index
+	glPrimitiveRestartIndex(restartIndex);
 
 	// Applying transformations
 	glm::mat4 modelMatrix = GetTransform();

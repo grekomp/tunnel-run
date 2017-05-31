@@ -95,5 +95,11 @@
     <None Include="run_files\shaders\vertex-texture.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="run_files\shaders\pickup.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="run_files\shaders\pickup.frag">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
