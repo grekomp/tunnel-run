@@ -9,10 +9,14 @@ Pickup::~Pickup()
 {
 }
 
-GameStatus Pickup::CheckCollision(GameStatus status) {
-	if (!isActive || status.lane != lane) return status;
+GameStatus Pickup::CheckCollision(GameStatus status, glm::vec4 segmentPosition) {
+	if (!isActive) return status;
 
-	if (glm::distance(status.cameraPosition, position) < collisionDistance) {
+	position = segmentPosition;
+	position.x = lane - 2;
+	position.y = status.ballPosition.y;
+
+	if (glm::distance(status.ballPosition, position) < collisionDistance + status.ballRadius) {
 		isActive = false;
 		status.score += score;
 	}
@@ -24,6 +28,7 @@ void Pickup::Render(glm::mat4 viewMatrix, glm::vec4 segmentPosition, GameStatus 
 	if (isActive) {
 		model.position = segmentPosition;
 		model.position.x = lane - 2;
+		model.position.y += glm::cos(status.time * 5) * 0.1f;
 
 		model.localRotation.y = std::fmod(status.time, rotationSpeed) / rotationSpeed * 360.0f;
 

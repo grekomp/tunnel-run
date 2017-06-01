@@ -16,8 +16,8 @@
 #include "Game.h"
 
 // Config
-const int WIDTH = 768;
-const int HEIGHT = 576;
+const int WIDTH = 1280;
+const int HEIGHT = 720;
 const float ROT_STEP = 10.0f;
 const float SCALE_STEP = 0.02f;
 
@@ -46,21 +46,17 @@ std::vector<const wchar_t *> textureFiles = {
 	L"wall-diff.tif",
 	L"wall-disp2.tif",
 	L"wall-norm.tif",
-	L"wall-disp2.tif",
-	L"floor-diff.tif",
-	L"floor-disp.tif",
-	L"floor-norm.tif",
-	L"floor-disp.tif",
+	L"cobblestone-diff.tif",
+	L"cobblestone-disp.tif",
+	L"cobblestone-norm.tif",
 	L"obstacle-diff.tif",
 	L"obstacle-spec.tif",
 	L"obstacle-norm.tif",
-	L"obstacle-disp.tif",
 	L"marble-diff.jpg",
 	L"marble-spec.jpg",
-	L"marble-norm.jpg",
-	L"marble-spec.jpg"
+	L"marble-norm.jpg"
 };
-const int nTextures = 16;
+const int nTextures = 12;
 GLuint textures[nTextures];
 GLuint tex_cube;
 
@@ -419,32 +415,92 @@ void setupBuffers()
 	Segment baseSegment;
 	baseSegment.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
 	baseSegment.length = 8.0f;
+	
+	// Segment: ob - ob - pi
 	baseSegment.obstacles.push_back(baseObstacle);
-	//baseSegment.obstacles.push_back(baseObstacle2);
+	baseSegment.obstacles.push_back(baseObstacle2);
 	baseSegment.pickups.push_back(basePickup);
-
 	baseSegments.push_back(baseSegment);
 
+	// Segment: ob - ob - no
+	baseSegment.pickups.clear();
+	baseSegments.push_back(baseSegment);
+
+	// Segment: ob - pi - ob
 	baseSegment.obstacles.clear();
 	baseSegment.pickups.clear();
 	baseSegment.obstacles.push_back(baseObstacle);
 	baseSegment.obstacles.push_back(baseObstacle3);
 	basePickup.lane = 2;
 	baseSegment.pickups.push_back(basePickup);
+	baseSegments.push_back(baseSegment);
 
-	//baseSegments.push_back(baseSegment);
+	// Segment: ob - no - ob
+	baseSegment.pickups.clear();
+	baseSegments.push_back(baseSegment);
+	game.segments.push_back(baseSegment);
 
+	// Segment: pi - ob - ob
 	baseSegment.obstacles.clear();
 	baseSegment.pickups.clear();
 	baseSegment.obstacles.push_back(baseObstacle2);
 	baseSegment.obstacles.push_back(baseObstacle3);
 	basePickup.lane = 1;
 	baseSegment.pickups.push_back(basePickup);
+	baseSegments.push_back(baseSegment);
 
-	//baseSegments.push_back(baseSegment);
+	// Segment: no - ob - ob
+	baseSegment.pickups.clear();
+	baseSegments.push_back(baseSegment);
 
+	// Segment: pi - no - no
+	baseSegment.length = 3.0f;
+	baseSegment.obstacles.clear();
+	baseSegment.pickups.clear();
+	basePickup.lane = 1;
+	baseSegment.pickups.push_back(basePickup);
+	baseSegments.push_back(baseSegment);
+
+	// Segment: no - pi - no
+	baseSegment.length = 3.0f;
+	baseSegment.obstacles.clear();
+	baseSegment.pickups.clear();
+	basePickup.lane = 2;
+	baseSegment.pickups.push_back(basePickup);
+	baseSegments.push_back(baseSegment);
+
+	// Segment: no - no - pi
+	baseSegment.length = 3.0f;
+	baseSegment.obstacles.clear();
+	baseSegment.pickups.clear();
+	basePickup.lane = 3;
+	baseSegment.pickups.push_back(basePickup);
+	baseSegments.push_back(baseSegment);
+
+	// Segment: ob - no - no
+	baseSegment.length = 6.0f;
+	baseSegment.obstacles.clear();
+	baseSegment.pickups.clear();
+	baseSegment.obstacles.push_back(baseObstacle);
+	baseSegments.push_back(baseSegment);
+
+	// Segment: no - ob - no
+	baseSegment.length = 6.0f;
+	baseSegment.obstacles.clear();
+	baseSegment.pickups.clear();
+	baseSegment.obstacles.push_back(baseObstacle2);
+	baseSegments.push_back(baseSegment);
+
+	// Segment: no - no - ob
+	baseSegment.length = 6.0f;
+	baseSegment.obstacles.clear();
+	baseSegment.pickups.clear();
+	baseSegment.obstacles.push_back(baseObstacle3);
+	baseSegments.push_back(baseSegment);
+
+
+	// Setting base segment
 	game.baseSegments = baseSegments;
-	game.segments.push_back(baseSegments[0]);
 
 	// ----------------
 	// Ball
@@ -475,22 +531,18 @@ void setupTextures() {
 	wallTexture.diffuse = textures[0];
 	wallTexture.specular = textures[1];
 	wallTexture.normal = textures[2];
-	wallTexture.displacement = textures[3];
 	
-	floorTexture.diffuse = textures[4];
-	floorTexture.specular = textures[5];
-	floorTexture.normal = textures[6];
-	floorTexture.displacement = textures[7];
+	floorTexture.diffuse = textures[3];
+	floorTexture.specular = textures[4];
+	floorTexture.normal = textures[5];
 
-	obstacleTexture.diffuse = textures[8];
-	obstacleTexture.specular = textures[9];
-	obstacleTexture.normal = textures[10];
-	obstacleTexture.displacement = textures[11];
+	obstacleTexture.diffuse = textures[6];
+	obstacleTexture.specular = textures[7];
+	obstacleTexture.normal = textures[8];
 
-	ballTexture.diffuse = textures[12];
-	ballTexture.specular = textures[13];
-	ballTexture.normal = textures[14];
-	ballTexture.displacement = textures[15];
+	ballTexture.diffuse = textures[9];
+	ballTexture.specular = textures[10];
+	ballTexture.normal = textures[11];
 
 	// Unbinding texture
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -549,13 +601,14 @@ void loadTexture(GLuint tex, const wchar_t *fileName) {
 	{
 		// Error reporting
 		ILenum err = ilGetError();
-		std::cerr << "Blad: " << err << std::endl;
+		std::wstring file(fileName);
+		std::string str(file.begin(), file.end());
+
+		std::cerr << "Error while loading " << str << ": " << err << std::endl;
 		std::cerr << "      " << ilGetString(err) << std::endl;
 
 		ilBindImage(0);
 		ilDeleteImages(1, &imageName);
-
-		exit(1);
 	}
 
 	// Defining texture

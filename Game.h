@@ -11,9 +11,11 @@ public:
 	GameStatus status;
 	std::vector<Segment> segments;
 	std::vector<CorridorSegment> corridorSegments;
-	float cameraSpeedX = 0.1f;
-	float cameraSpeedZ = 10.0f;
-	float cameraSpeedModifier = 1.1f;
+	float cameraSpeedZ = 6.0f;
+	float speedRatio = 80.0f;
+	float cameraSpeedX = cameraSpeedZ / speedRatio;
+	float cameraSpeedModifierZ = 0.05f;
+	float maxCameraSpeedZ = 25.0f;
 	float renderDistance = 50.0f;
 	Model ball;
 	float ballOffset = 2.5f;

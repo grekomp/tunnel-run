@@ -37,19 +37,15 @@ void main()
 	lightD = normalize(lightDir);
 	viewD = normalize(viewDir);
 
-	vec2 p = (texture(textureSamplerDisp, texCoords).r * parallaxStrength) * viewDir.xy;
-
-	vec2 parallaxTexCoord = texCoords + p;
-
-	vec3 N = normalize(2.0 * texture(textureSamplerNorm, parallaxTexCoord).rgb - 1.0);
+	vec3 N = normalize(2.0 * texture(textureSamplerNorm, texCoords).rgb - 1.0);
 	
 	// Lighting
 	vec3 ambient = lightAmbient * materialAmbient;
-	vec3 diffuse = lightDiffuse * vec3(texture(textureSamplerDiff, parallaxTexCoord)) * max( dot( lightD, N ), 0.0 );
+	vec3 diffuse = lightDiffuse * vec3(texture(textureSamplerDiff, texCoords)) * max( dot( lightD, N ), 0.0 );
 
 	vec3 specular = vec3( 0.0, 0.0, 0.0 );
 	vec3 refl = reflect( vec3( 0.0, 0.0, 0.0 ) - lightD, N );
-	specular = pow( max( 0.0, dot( viewD, refl ) ), shininess ) * vec3(texture(textureSamplerSpec, parallaxTexCoord)) * lightSpecular;
+	specular = pow( max( 0.0, dot( viewD, refl ) ), shininess ) * vec3(texture(textureSamplerSpec, texCoords)) * lightSpecular;
 
 	vec4 color = vec4( clamp( ambient + diffuse + specular, 0.0, 1.0 ), 1.0 );
 

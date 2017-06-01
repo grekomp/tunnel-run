@@ -10,7 +10,7 @@ public:
 	glm::vec4 position;
 	Model model;
 	int lane;
-	float collisionDistance = 0.1f;
+	float collisionDistance = 0.3f;
 
 	Obstacle();
 	~Obstacle();

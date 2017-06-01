@@ -9,6 +9,7 @@ Game::Game()
 	status.lane = 2;
 	status.ballRadius = 0.3f;
 	status.ballPosition.y = status.ballRadius;
+	status.ballPosition.w = 1.0f;
 	status.time = 0.0f;
 
 	lastFrame = std::chrono::system_clock::now();
@@ -34,6 +35,15 @@ void Game::NextFrame() {
 	status.time += deltaTime;
 	status.deltaTime = deltaTime;
 
+	// Changing camera speed
+	if (cameraSpeedZ < maxCameraSpeedZ) {
+		cameraSpeedZ += cameraSpeedModifierZ * deltaTime;
+		cameraSpeedX = cameraSpeedZ / speedRatio;
+	}
+	else {
+		cameraSpeedZ = maxCameraSpeedZ;
+	}
+
 	// Moving camera forward
 	status.cameraPosition.z -= cameraSpeedZ * deltaTime;
 
@@ -47,6 +57,7 @@ void Game::NextFrame() {
 	ball.position = status.ballPosition;
 
 	ball.localRotation.x -= cameraSpeedZ * deltaTime * 360.0f / 2 * glm::pi<float>() * status.ballRadius;
+	ball.localRotation.z = ball.position.x * 360.0f / 2 * glm::pi<float>() * status.ballRadius;
 
 	// Checking for collisions
 	for (int i = 0; i < segments.size(); i++) {

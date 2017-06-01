@@ -10,11 +10,12 @@ Obstacle::~Obstacle()
 }
 
 bool Obstacle::CheckCollision(GameStatus status, glm::vec4 segmentPosition) {
-	if (status.lane != lane) return false;
-
 	position = segmentPosition;
+	position.x = lane - 2;
+	position.y = status.ballPosition.y;
 
-	if (glm::abs(status.ballPosition.z - position.z) < collisionDistance + status.ballRadius) return true;
+	if (glm::distance(status.ballPosition, position) < collisionDistance + status.ballRadius) 
+		return true;
 
 	return false;
 }

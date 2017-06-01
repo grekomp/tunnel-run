@@ -192,9 +192,9 @@ glm::mat4 Model::GetTransform() {
 	transform *= glm::translate(centerMass);
 
 	// Local rotation
-	transform *= glm::rotate(glm::radians(localRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	transform *= glm::rotate(glm::radians(localRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	transform *= glm::rotate(glm::radians(localRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	transform *= glm::rotate(glm::radians(localRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	// Local scale
 	transform *= glm::scale(localScale);

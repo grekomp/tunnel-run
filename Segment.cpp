@@ -19,7 +19,7 @@ GameStatus Segment::CheckCollisions(GameStatus status) {
 	}
 	
 	for (int i = 0; i < pickups.size(); i++) {
-		status = pickups[i].CheckCollision(status);
+		status = pickups[i].CheckCollision(status, position);
 	}
 
 	return status;
