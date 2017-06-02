@@ -15,5 +15,6 @@ public:
 	float deltaTime;
 	int lane;
 	bool gameOver = false;
+	float renderStart = 0.0f;
 };
 

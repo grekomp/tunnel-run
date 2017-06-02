@@ -11,11 +11,12 @@ public:
 	Model model;
 	int lane;
 	float collisionDistance = 0.3f;
+	bool isActive = true;
 
 	Obstacle();
 	~Obstacle();
 
-	void Render(glm::mat4 viewMatrix, glm::vec4 segmentPosition);
+	void Render(glm::mat4 viewMatrix, glm::vec4 segmentPosition, GameStatus status);
 	bool CheckCollision(GameStatus status, glm::vec4 segmentPosition);
 	void Dispose();
 };

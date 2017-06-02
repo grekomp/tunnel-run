@@ -14,6 +14,8 @@ layout (location = 15) uniform vec3 materialSpecular;
 layout (location = 16) uniform float shininess;
 
 layout (location = 22) uniform samplerCube texSampler;
+layout (location = 24) uniform float renderDistance;
+
 float etaX = 1/2.217;
 float etaY = 1/2.417;
 float etaZ = 1/2.617;
@@ -45,6 +47,6 @@ void main()
 	float r = max(0.0, min(1.0, 4.0 * pow(1.0 + dot(incident_eye, norm), 1.0)));
 	vec4 refractedColor = vec4(texture(texSampler, refractedX).x, texture(texSampler, refractedY).y, texture(texSampler, refractedZ).z, 1.0);
 	vec4 color = r * texture(texSampler, reflected) + (1 - r) * refractedColor + vec4(specular, 0.0) + vec4(ambient,0.0);
-	fColor = mix(color, vec4(0, 0, 0, 0), length(position) / 50); 
+	fColor = mix(color, vec4(0, 0, 0, 0), length(position) / renderDistance); 
 
 }

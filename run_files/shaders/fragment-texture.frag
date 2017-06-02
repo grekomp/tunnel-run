@@ -20,6 +20,9 @@ layout (location = 20) uniform vec3 lightSpecular;
 
 layout (location = 21) uniform float parallaxStrength;
 
+layout (location = 23) uniform bool ignoreTextures;
+layout (location = 24) uniform float renderDistance;
+
 in vec2 texCoords;
 in vec3 lightDir;
 in vec3 viewDir;
@@ -37,19 +40,34 @@ void main()
 	lightD = normalize(lightDir);
 	viewD = normalize(viewDir);
 
-	vec3 N = normalize(2.0 * texture(textureSamplerNorm, texCoords).rgb - 1.0);
+	vec3 N;
 	
 	// Lighting
-	vec3 ambient = lightAmbient * materialAmbient;
-	vec3 diffuse = lightDiffuse * vec3(texture(textureSamplerDiff, texCoords)) * max( dot( lightD, N ), 0.0 );
-
+	vec3 ambient;
+	vec3 diffuse;
 	vec3 specular = vec3( 0.0, 0.0, 0.0 );
-	vec3 refl = reflect( vec3( 0.0, 0.0, 0.0 ) - lightD, N );
-	specular = pow( max( 0.0, dot( viewD, refl ) ), shininess ) * vec3(texture(textureSamplerSpec, texCoords)) * lightSpecular;
+	vec3 refl;
+
+	if (!ignoreTextures) {
+		N = normalize(2.0 * texture(textureSamplerNorm, texCoords).rgb - 1.0);
+		
+		refl = reflect( vec3( 0.0, 0.0, 0.0 ) - lightD, N );
+
+		ambient = lightAmbient * vec3(texture(textureSamplerDiff, texCoords));
+		diffuse = lightDiffuse * vec3(texture(textureSamplerDiff, texCoords)) * max( dot( lightD, N ), 0.0 );
+		specular = pow( max( 0.0, dot( viewD, refl ) ), shininess ) * vec3(texture(textureSamplerSpec, texCoords)) * lightSpecular;
+	} else {
+		N = vec3(0, 0, 1);
+
+		refl = reflect( vec3( 0.0, 0.0, 0.0 ) - lightD, N );
+		ambient = lightAmbient * materialAmbient;
+		diffuse = lightDiffuse * materialDiffuse * max( dot( lightD, N ), 0.0 );
+		specular = pow( max( 0.0, dot( viewD, refl ) ), shininess ) * materialSpecular * lightSpecular;
+	}
 
 	vec4 color = vec4( clamp( ambient + diffuse + specular, 0.0, 1.0 ), 1.0 );
 
-	color = mix(color, vec4(0, 0, 0, 0), length(position) / 50); 
+	color = mix(color, vec4(0, 0, 0, 0), length(position) / renderDistance); 
 
 	fColor = color;
 }

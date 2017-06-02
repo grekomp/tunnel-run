@@ -43,7 +43,7 @@ glm::mat4 projMatrix;
 
 // Textures
 std::vector<const wchar_t *> textureFiles = {
-	L"wall-diff.tif",
+	L"wall-diff2.tif",
 	L"wall-disp2.tif",
 	L"wall-norm.tif",
 	L"cobblestone-diff.tif",
@@ -54,15 +54,18 @@ std::vector<const wchar_t *> textureFiles = {
 	L"obstacle-norm.tif",
 	L"marble-diff.jpg",
 	L"marble-spec.jpg",
-	L"marble-norm.jpg"
+	L"marble-norm.jpg",
+	L"concrete-diff.tif",
+	L"concrete-disp.tif",
+	L"concrete-norm.tif"
 };
-const int nTextures = 12;
+const int nTextures = 15;
 GLuint textures[nTextures];
 GLuint tex_cube;
 
 Texture wallTexture;
 Texture floorTexture;
-Texture ceilTexture;
+Texture ceilingTexture;
 Texture obstacleTexture;
 Texture ballTexture;
 
@@ -102,9 +105,9 @@ int main(int argc, char *argv[])
 
 	glutSetOption( GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS );
 
-    glutInitWindowPosition( 0, 0 );
-    glutInitWindowSize( WIDTH, HEIGHT );
-    glutCreateWindow( "OpenGL (Core Profile) - Transformations" );
+	glutInitWindowPosition((1920 - WIDTH) / 2, (1080 - HEIGHT) / 2);
+	glutInitWindowSize(WIDTH, HEIGHT);
+	glutCreateWindow("Tunnel Roll");
 
 	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();
@@ -142,16 +145,29 @@ void onShutdown()
 
 void printStatus()
 {
-	std::cout << "GLEW = "		  << glewGetString( GLEW_VERSION ) << std::endl;
+	/*std::cout << "GLEW = "		  << glewGetString( GLEW_VERSION ) << std::endl;
 	std::cout << "GL_VENDOR = "	  << glGetString( GL_VENDOR ) << std::endl;
 	std::cout << "GL_RENDERER = " << glGetString( GL_RENDERER ) << std::endl;
 	std::cout << "GL_VERSION = "  << glGetString( GL_VERSION ) << std::endl;
 	std::cout << "GLSL = "		  << glGetString( GL_SHADING_LANGUAGE_VERSION ) << std::endl << std::endl;
+	*/
+	system("cls");
 
-	std::cout << "w, s, a, d, q, z - local rotation" << std::endl;
-	std::cout << "o, k - local scale" << std::endl;
-	std::cout << "p, l - global scale" << std::endl;
-	std::cout << "+, - - change FOV" << std::endl;
+	std::cout << "================================" << std::endl;
+	std::cout << "= TUNNEL ROLL                  =" << std::endl;
+	std::cout << "================================" << std::endl << std::endl;
+
+	std::cout << "---- Controls ----" << std::endl;
+	std::cout << "* a/left arrow - move left" << std::endl;
+	std::cout << "* d/right arrow - move right" << std::endl;
+	std::cout << "* r - restart game" << std::endl;
+	std::cout << "* esc - exit game" << std::endl << std::endl;
+
+	std::cout << "-- Instructions --" << std::endl;
+	std::cout << "* Avoid obstacles " << std::endl;
+	std::cout << "* Collect diamonds" << std::endl;
+	std::cout << "* Survive as long as you can" << std::endl;
+	std::cout << "* Have fun! :D" << std::endl << std::endl << std::endl;
 }
 
 void initGL()
@@ -180,7 +196,7 @@ void changeSize(GLsizei w, GLsizei h)
 
 void updateProjectionMatrix()
 {
-	projMatrix = glm::perspective( glm::radians( fovy ), aspectRatio, 0.1f, 100.0f );
+	projMatrix = glm::perspective( glm::radians( fovy ), aspectRatio, 1.0f, 100.0f );
 }
 
 void renderScene()
@@ -235,6 +251,10 @@ void keyboard(unsigned char key, int x, int y)
 			game.status.lane++;
 			if (game.status.lane > 3) game.status.lane = 3;
 			break;
+		case 'r':
+			game.Setup();
+			game.PostSetup();
+			break;
 		/*
 		case 'w':
 			game.cameraSpeedZ *= game.cameraSpeedModifier;
@@ -243,7 +263,7 @@ void keyboard(unsigned char key, int x, int y)
 			game.cameraSpeedZ /= game.cameraSpeedModifier;
 			break;
 			*/
-		case '+':
+		/*case '+':
 		case '=':
 			fovy /= 1.1f;
 			updateProjectionMatrix();
@@ -255,7 +275,7 @@ void keyboard(unsigned char key, int x, int y)
 				fovy *= 1.1f;
 				updateProjectionMatrix();
 			}
-			break;
+			break;*/
 	}
 
 	glutPostRedisplay();
@@ -295,6 +315,9 @@ void setupShaders()
 
 void setupBuffers()
 {
+	// ----------------
+	// Setup Corridor
+
 	// Setup Wall
 	Model wall;
 	wall.LoadModelFromFile("models/wall.obj");
@@ -331,7 +354,25 @@ void setupBuffers()
 
 	// Adding floor to corridor
 	baseCorridor.models.push_back(floor);
+
+	// Setup ceiling
+	Model ceiling;
+	ceiling.LoadModelFromFile("models/ceiling.obj");
+	ceiling.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
+
+	// Ceiling Material
+	ceiling.material.texture = ceilingTexture;
+	ceiling.material.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+	ceiling.material.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+	ceiling.material.specular = glm::vec3(0.8f, 0.8f, 0.8f);
+	ceiling.material.shininess = 80.0f;
 	
+	// Buffering ceiling
+	ceiling.Buffer();
+	
+	// Adding ceiling to corridor
+	baseCorridor.models.push_back(ceiling);
+
 	// Setup columns
 	Model columns;
 	columns.LoadModelFromFile("models/wallColumn.obj");
@@ -345,18 +386,18 @@ void setupBuffers()
 	columns.material.parallaxStrength = 0.05f;
 	columns.material.shininess = 80.0f;
 
-	// Buffering floor
+	// Buffering columns
 	columns.Buffer();
 
-	// Adding floor to corridor
+	// Adding columns to corridor
 	baseCorridor.models.push_back(columns);
 
-	// Setting corridor length
+	// Setting corridor options
+	baseCorridor.position = glm::vec4(0, 0, 10, 1);
 	baseCorridor.length = 4.0f;
 
 	// Assigning corridor
 	game.corridorBase = baseCorridor;
-	game.corridorSegments.push_back(baseCorridor);
 
 	// ----------------
 	// Setup obstacle
@@ -416,7 +457,13 @@ void setupBuffers()
 	baseSegment.position = glm::vec4(0.0, 0.0, 0.0, 1.0);
 	baseSegment.length = 8.0f;
 	
+	// Segment: ob - no - ob
+	baseSegment.obstacles.push_back(baseObstacle);
+	baseSegment.obstacles.push_back(baseObstacle3);
+	baseSegments.push_back(baseSegment);
+
 	// Segment: ob - ob - pi
+	baseSegment.obstacles.clear();
 	baseSegment.obstacles.push_back(baseObstacle);
 	baseSegment.obstacles.push_back(baseObstacle2);
 	baseSegment.pickups.push_back(basePickup);
@@ -434,11 +481,6 @@ void setupBuffers()
 	basePickup.lane = 2;
 	baseSegment.pickups.push_back(basePickup);
 	baseSegments.push_back(baseSegment);
-
-	// Segment: ob - no - ob
-	baseSegment.pickups.clear();
-	baseSegments.push_back(baseSegment);
-	game.segments.push_back(baseSegment);
 
 	// Segment: pi - ob - ob
 	baseSegment.obstacles.clear();
@@ -498,7 +540,6 @@ void setupBuffers()
 	baseSegment.obstacles.push_back(baseObstacle3);
 	baseSegments.push_back(baseSegment);
 
-
 	// Setting base segment
 	game.baseSegments = baseSegments;
 
@@ -513,8 +554,23 @@ void setupBuffers()
 
 	game.ball = ball;
 
+	// ----------------
+	// GameOver text
+	Model gameover;
+	gameover.LoadModelFromFile("models/gameover.obj");
+	gameover.material.ambient = glm::vec3(1, 1, 1);
+	gameover.material.diffuse = glm::vec3(1, 1, 1);
+	gameover.material.specular = glm::vec3(0.9, 0.9, 0.9);
+	gameover.material.ignoreTextures = true;
+	gameover.material.shininess = 50;
+
+	gameover.Buffer();
+
+	game.gameoverText = gameover;
+
+	// ----------------
 	// Setting up first frame
-	game.FirstFrame();
+	game.PostSetup();
 }
 
 // ------------------------------------------------
@@ -543,6 +599,10 @@ void setupTextures() {
 	ballTexture.diffuse = textures[9];
 	ballTexture.specular = textures[10];
 	ballTexture.normal = textures[11];
+
+	ceilingTexture.diffuse = textures[12];
+	ceilingTexture.specular = textures[13];
+	ceilingTexture.normal = textures[14];
 
 	// Unbinding texture
 	glBindTexture(GL_TEXTURE_2D, 0);

@@ -35,9 +35,9 @@ void Segment::Dispose() {
 	}
 }
 
-void Segment::Render(glm::mat4 viewMatrix) {
+void Segment::Render(glm::mat4 viewMatrix, GameStatus status) {
 	for (int i = 0; i < obstacles.size(); i++) {
-		obstacles[i].Render(viewMatrix, position);
+		obstacles[i].Render(viewMatrix, position, status);
 	}
 }
 

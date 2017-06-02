@@ -20,10 +20,12 @@ bool Obstacle::CheckCollision(GameStatus status, glm::vec4 segmentPosition) {
 	return false;
 }
 
-void Obstacle::Render(glm::mat4 viewMatrix, glm::vec4 segmentPosition) {
-	model.position = segmentPosition;
-	model.position.x = lane - 2;
-	model.Render(GL_TRIANGLES, viewMatrix);
+void Obstacle::Render(glm::mat4 viewMatrix, glm::vec4 segmentPosition, GameStatus status) {
+	if (isActive && status.cameraPosition.z - segmentPosition.z > status.renderStart) {
+		model.position = segmentPosition;
+		model.position.x = lane - 2;
+		model.Render(GL_TRIANGLES, viewMatrix);
+	}
 }
 
 void Obstacle::Dispose() {
