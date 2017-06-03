@@ -105,7 +105,8 @@ int main(int argc, char *argv[])
 
 	glutSetOption( GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS );
 
-	glutInitWindowPosition((1920 - WIDTH) / 2, (1080 - HEIGHT) / 2);
+	glutInitWindowPosition(0, 0);
+	//glutInitWindowPosition((1920 - WIDTH) / 2, (1080 - HEIGHT) / 2);
 	glutInitWindowSize(WIDTH, HEIGHT);
 	glutCreateWindow("Tunnel Roll");
 
@@ -252,30 +253,10 @@ void keyboard(unsigned char key, int x, int y)
 			if (game.status.lane > 3) game.status.lane = 3;
 			break;
 		case 'r':
+			printStatus();
 			game.Setup();
 			game.PostSetup();
 			break;
-		/*
-		case 'w':
-			game.cameraSpeedZ *= game.cameraSpeedModifier;
-			break;
-		case 's':
-			game.cameraSpeedZ /= game.cameraSpeedModifier;
-			break;
-			*/
-		/*case '+':
-		case '=':
-			fovy /= 1.1f;
-			updateProjectionMatrix();
-			break;
-
-		case '-':
-			if (1.1f * fovy < 180.0f)
-			{
-				fovy *= 1.1f;
-				updateProjectionMatrix();
-			}
-			break;*/
 	}
 
 	glutPostRedisplay();
@@ -625,6 +606,10 @@ void setupTextures() {
 	loadTexture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, L"neg_z.png");
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	GLfloat fLargest;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
+	std::cout << fLargest;
 }
 
 void setupTexture(GLenum target, GLuint texture, const wchar_t *fileName) {
@@ -635,13 +620,14 @@ void setupTexture(GLenum target, GLuint texture, const wchar_t *fileName) {
 	glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
 
 	// Loading texture from file
 	loadTexture(target, fileName);
 
-	glGenerateTextureMipmap(texture);
+	glGenerateMipmap(target);
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 }
 
 // Loads a texture from file

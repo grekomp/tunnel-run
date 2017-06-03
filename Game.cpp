@@ -30,9 +30,11 @@ void Game::Setup() {
 	status.time = 0.0f;
 	status.score = 0;
 	status.renderStart = 1.5f;
+	status.gameOver = false;
 
 	// Setup base last frame time
 	lastFrame = std::chrono::system_clock::now();
+
 }
 
 void Game::PostSetup() {
