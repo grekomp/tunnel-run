@@ -17,7 +17,7 @@ public:
 	float cameraSpeedX = cameraSpeedZ / speedRatio;
 	float cameraSpeedModifierZ = 0.05f;
 	float maxCameraSpeedZ = 25.0f;
-	float renderDistance = 100.0f;
+	float renderDistance = 50.0f;
 	Model ball;
 	float ballOffset = 2.5f;
 	Model gameoverText;

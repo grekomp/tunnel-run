@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 	glutInitWindowPosition(0, 0);
 	//glutInitWindowPosition((1920 - WIDTH) / 2, (1080 - HEIGHT) / 2);
 	glutInitWindowSize(WIDTH, HEIGHT);
-	glutCreateWindow("Tunnel Roll");
+	glutCreateWindow("Tunnel Run");
 
 	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();
@@ -155,7 +155,7 @@ void printStatus()
 	system("cls");
 
 	std::cout << "================================" << std::endl;
-	std::cout << "= TUNNEL ROLL                  =" << std::endl;
+	std::cout << "= TUNNEL RUN                   =" << std::endl;
 	std::cout << "================================" << std::endl << std::endl;
 
 	std::cout << "---- Controls ----" << std::endl;
@@ -477,7 +477,7 @@ void setupBuffers()
 	baseSegments.push_back(baseSegment);
 
 	// Segment: pi - no - no
-	baseSegment.length = 3.0f;
+	baseSegment.length = 4.0f;
 	baseSegment.obstacles.clear();
 	baseSegment.pickups.clear();
 	basePickup.lane = 1;
@@ -485,7 +485,7 @@ void setupBuffers()
 	baseSegments.push_back(baseSegment);
 
 	// Segment: no - pi - no
-	baseSegment.length = 3.0f;
+	baseSegment.length = 4.0f;
 	baseSegment.obstacles.clear();
 	baseSegment.pickups.clear();
 	basePickup.lane = 2;
@@ -493,7 +493,7 @@ void setupBuffers()
 	baseSegments.push_back(baseSegment);
 
 	// Segment: no - no - pi
-	baseSegment.length = 3.0f;
+	baseSegment.length = 4.0f;
 	baseSegment.obstacles.clear();
 	baseSegment.pickups.clear();
 	basePickup.lane = 3;
